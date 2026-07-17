@@ -595,6 +595,30 @@
     80% { transform: translateX(4px); }
   }
   .shake { animation: shake 0.4s ease; }
+
+  /* ── MUSIC BUTTON ── */
+  .music-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(74,44,10,0.85);
+    border: 2px solid var(--amber);
+    color: var(--amber-light);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+    transition: transform 0.15s, background 0.15s;
+    backdrop-filter: blur(4px);
+  }
+  .music-btn:active { transform: scale(0.9); }
+  .music-btn.muted { opacity: 0.6; }
 </style>
 </head>
 <body>
@@ -708,6 +732,9 @@
   </div>
 
 </div>
+
+<!-- ── MUSIC TOGGLE BUTTON ── -->
+<button class="music-btn" id="music-btn" onclick="toggleMusic()" title="Ligar/Desligar música">🎵</button>
 
 <script>
 /* ══════════════════════════════════════════════════════
@@ -979,11 +1006,13 @@ function handleAnswer(btn, correct, chosenIdx, displayedIndices) {
     const earned = basePoints * multiplier;
     state.score += earned;
 
+    sfxCorrect(state.streak);
     showFeedback(state.streak >= 3 ? '🔥' : '✅');
   } else {
     btn.classList.add('wrong');
     state.lives--;
     state.streak = 0;
+    sfxWrong();
     showFeedback('❌');
 
     // Shake lives
@@ -1047,6 +1076,7 @@ function showSpotlight() {
   document.getElementById('spotlight-years').textContent = pioneer.years;
   document.getElementById('spotlight-bio').innerHTML = pioneer.bio;
 
+  sfxSpotlight();
   showScreen('screen-spotlight');
 }
 
@@ -1078,8 +1108,155 @@ function endGame(completed) {
   showScreen('screen-gameover');
 }
 
+/* ══════════════════════════════════════════════════════
+   AUDIO ENGINE
+══════════════════════════════════════════════════════ */
+let audioCtx = null;
+let musicMuted = false;
+let bgNodes = [];   // currently running bg oscillators/gains
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+/* ── Background music: simple modal melody loop ── */
+// Notes in Hz for a pentatonic-ish meditative sequence
+const BG_MELODY = [261.63, 293.66, 329.63, 392.00, 440.00, 392.00, 349.23, 293.66];
+const BG_BASS   = [130.81, 146.83, 164.81, 130.81];
+let bgMelodyIdx = 0, bgBassIdx = 0;
+let bgTimeoutMelody = null, bgTimeoutBass = null;
+
+function playBgNote(freq, duration, gainVal = 0.06, type = 'sine') {
+  if (musicMuted || !audioCtx) return;
+  const ctx = audioCtx;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, ctx.currentTime);
+  gain.gain.setValueAtTime(gainVal, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(ctx.currentTime);
+  osc.stop(ctx.currentTime + duration);
+}
+
+function scheduleMelody() {
+  if (musicMuted) return;
+  const note = BG_MELODY[bgMelodyIdx % BG_MELODY.length];
+  bgMelodyIdx++;
+  playBgNote(note, 1.8, 0.05, 'sine');
+  bgTimeoutMelody = setTimeout(scheduleMelody, 900);
+}
+
+function scheduleBass() {
+  if (musicMuted) return;
+  const note = BG_BASS[bgBassIdx % BG_BASS.length];
+  bgBassIdx++;
+  playBgNote(note, 2.5, 0.07, 'triangle');
+  bgTimeoutBass = setTimeout(scheduleBass, 1800);
+}
+
+function startBgMusic() {
+  if (musicMuted) return;
+  getAudioCtx();
+  stopBgMusic();
+  bgMelodyIdx = 0; bgBassIdx = 0;
+  scheduleMelody();
+  bgTimeoutBass = setTimeout(scheduleBass, 450);
+}
+
+function stopBgMusic() {
+  clearTimeout(bgTimeoutMelody);
+  clearTimeout(bgTimeoutBass);
+  bgTimeoutMelody = null;
+  bgTimeoutBass = null;
+}
+
+function toggleMusic() {
+  musicMuted = !musicMuted;
+  const btn = document.getElementById('music-btn');
+  btn.textContent = musicMuted ? '🔇' : '🎵';
+  btn.classList.toggle('muted', musicMuted);
+  if (musicMuted) {
+    stopBgMusic();
+  } else {
+    startBgMusic();
+  }
+}
+
+/* ── SFX: correct answer ── */
+function sfxCorrect(streak) {
+  const ctx = getAudioCtx();
+  const notes = streak >= 3
+    ? [523.25, 659.25, 783.99, 1046.50]  // higher fanfare for streak
+    : [523.25, 659.25, 783.99];
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const t = ctx.currentTime + i * 0.09;
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.36);
+  });
+}
+
+/* ── SFX: wrong answer ── */
+function sfxWrong() {
+  const ctx = getAudioCtx();
+  const notes = [320, 260, 210];
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const t = ctx.currentTime + i * 0.1;
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, t);
+    gain.gain.setValueAtTime(0.14, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.23);
+  });
+}
+
+/* ── SFX: pioneer spotlight ── */
+function sfxSpotlight() {
+  const ctx = getAudioCtx();
+  // Triumphant ascending arpeggio
+  const notes = [392, 523.25, 659.25, 783.99, 1046.50];
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const t = ctx.currentTime + i * 0.12;
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, t);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.2, t + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.56);
+  });
+}
+
 // Init
 showStart();
+
+// Start music on first user interaction
+document.addEventListener('click', function startOnInteraction() {
+  if (!musicMuted) startBgMusic();
+  document.removeEventListener('click', startOnInteraction);
+}, { once: true });
 </script>
 </body>
 </html>

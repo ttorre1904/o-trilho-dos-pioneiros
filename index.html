@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>O Trilho dos Pioneiros</title>
+<style>
+  :root {
+    --amber: #C8860A;
+    --amber-light: #F0A830;
+    --amber-dark: #8B5E06;
+    --cream: #FDF6E3;
+    --cream-dark: #F5E8C0;
+    --brown: #4A2C0A;
+    --brown-mid: #7A4A1E;
+    --text: #2C1A06;
+    --white: #FFFDF7;
+    --red: #C0392B;
+    --green: #27AE60;
+    --shadow: rgba(74,44,10,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--brown);
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100dvh;
+    background: var(--cream);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── TEXTURE ── */
+  #app::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C8860A' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .screen {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+  }
+  .screen.active { display: flex; }
+
+  /* ══════════════════════════════════════
+     SCREEN: START
+  ══════════════════════════════════════ */
+  #screen-start {
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    gap: 0;
+    background: linear-gradient(175deg, var(--brown) 0%, var(--brown-mid) 55%, var(--cream-dark) 100%);
+  }
+
+  .flame-wrap {
+    font-size: 72px;
+    line-height: 1;
+    margin-bottom: 16px;
+    animation: flicker 2.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 18px rgba(240,168,48,0.7));
+  }
+
+  @keyframes flicker {
+    0%,100% { transform: scale(1) rotate(-1deg); }
+    30% { transform: scale(1.06) rotate(1.5deg); }
+    60% { transform: scale(0.97) rotate(-0.5deg); }
+  }
+
+  #screen-start h1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--cream);
+    text-align: center;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    margin-bottom: 6px;
+  }
+
+  #screen-start .subtitle {
+    font-size: 13px;
+    color: var(--amber-light);
+    text-align: center;
+    font-style: italic;
+    letter-spacing: 1px;
+    margin-bottom: 36px;
+  }
+
+  .start-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 24px 20px;
+    width: 100%;
+    box-shadow: 0 8px 32px var(--shadow);
+    margin-bottom: 24px;
+    border: 1.5px solid var(--cream-dark);
+  }
+
+  .start-card p {
+    font-size: 14px;
+    color: var(--brown-mid);
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .rules-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .rules-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .rules-list .icon { font-size: 18px; flex-shrink: 0; }
+
+  .high-score-wrap {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .high-score-wrap .label {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--amber-light);
+    margin-bottom: 2px;
+  }
+
+  .high-score-wrap .value {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--white);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--amber-light), var(--amber));
+    color: var(--brown);
+    border: none;
+    border-radius: 16px;
+    padding: 18px 32px;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 4px 16px rgba(200,134,10,0.4), 0 1px 0 rgba(255,255,255,0.2) inset;
+    letter-spacing: 0.5px;
+    transition: transform 0.1s, box-shadow 0.1s;
+    active: none;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(200,134,10,0.3);
+  }
+
+  /* ══════════════════════════════════════
+     SCREEN: GAME
+  ══════════════════════════════════════ */
+  #screen-game {
+    padding: 0;
+  }
+
+  .game-header {
+    background: linear-gradient(135deg, var(--brown), var(--brown-mid));
+    padding: 14px 20px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 3px 12px var(--shadow);
+  }
+
+  .lives-display {
+    display: flex;
+    gap: 5px;
+    font-size: 22px;
+  }
+
+  .life { transition: transform 0.2s; }
+  .life.lost { filter: grayscale(1) opacity(0.3); }
+
+  .score-display {
+    text-align: center;
+  }
+  .score-display .score-num {
+    font-size: 26px;
+    font-weight: bold;
+    color: var(--amber-light);
+    line-height: 1;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .score-display .score-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .streak-display {
+    text-align: right;
+    min-width: 60px;
+  }
+  .streak-display .streak-num {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--amber-light);
+    line-height: 1;
+  }
+  .streak-display .streak-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .streak-display.hot .streak-num {
+    color: #FF6B35;
+    animation: pulse 0.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.15); }
+  }
+
+  .difficulty-bar {
+    display: flex;
+    gap: 0;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+  }
+  .diff-seg {
+    flex: 1;
+    transition: background 0.5s;
+  }
+  .diff-seg.easy { background: var(--green); }
+  .diff-seg.medium { background: var(--amber); }
+  .diff-seg.hard { background: var(--red); }
+  .diff-seg.inactive { background: rgba(255,255,255,0.1); }
+
+  .question-area {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 20px 12px;
+  }
+
+  .diff-badge {
+    align-self: flex-start;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .diff-badge.easy { background: rgba(39,174,96,0.15); color: #1E8449; }
+  .diff-badge.medium { background: rgba(200,134,10,0.15); color: var(--amber-dark); }
+  .diff-badge.hard { background: rgba(192,57,43,0.15); color: #A93226; }
+
+  .question-text {
+    font-size: 17px;
+    color: var(--text);
+    line-height: 1.55;
+    margin: 8px 0 12px;
+  }
+
+  .q-counter {
+    font-size: 12px;
+    color: var(--brown-mid);
+    margin-top: 10px;
+    text-align: right;
+    opacity: 0.7;
+  }
+
+  .options-area {
+    padding: 0 20px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: auto;
+  }
+
+  .option-btn {
+    background: var(--white);
+    border: 2px solid var(--cream-dark);
+    border-radius: 14px;
+    padding: 15px 18px;
+    font-size: 15px;
+    font-family: 'Georgia', serif;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.4;
+    transition: all 0.15s;
+    box-shadow: 0 2px 6px var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-btn:active:not(.answered) {
+    transform: scale(0.98);
+  }
+
+  .option-btn.correct {
+    background: #D5F5E3;
+    border-color: var(--green);
+    color: #1A5E34;
+  }
+
+  .option-btn.wrong {
+    background: #FADBD8;
+    border-color: var(--red);
+    color: #7B241C;
+  }
+
+  .option-btn.reveal {
+    background: #D5F5E3;
+    border-color: var(--green);
+    color: #1A5E34;
+    opacity: 0.7;
+  }
+
+  .option-btn .option-letter {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--cream-dark);
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 22px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
+
+  /* ── FEEDBACK OVERLAY ── */
+  .feedback-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .feedback-msg {
+    font-size: 48px;
+    animation: popIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275) forwards,
+               fadeOut 0.4s ease 0.7s forwards;
+    opacity: 0;
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    100% { transform: scale(1.1); opacity: 1; }
+  }
+  @keyframes fadeOut {
+    to { opacity: 0; transform: scale(1.3); }
+  }
+
+  /* ══════════════════════════════════════
+     SCREEN: PIONEER SPOTLIGHT
+  ══════════════════════════════════════ */
+  #screen-spotlight {
+    padding: 0;
+    background: linear-gradient(175deg, var(--brown) 0%, var(--brown-mid) 40%, var(--cream) 100%);
+    align-items: center;
+    justify-content: flex-start;
+    overflow-y: auto;
+  }
+
+  .spotlight-top {
+    padding: 32px 24px 20px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .spotlight-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber-light);
+    margin-bottom: 8px;
+  }
+
+  .spotlight-icon {
+    font-size: 64px;
+    display: block;
+    margin: 0 auto 12px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  }
+
+  .spotlight-name {
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--white);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .spotlight-years {
+    font-size: 13px;
+    color: var(--amber-light);
+    font-style: italic;
+    margin-bottom: 0;
+  }
+
+  .spotlight-card {
+    background: var(--white);
+    margin: 0 20px 24px;
+    border-radius: 20px;
+    padding: 22px 20px;
+    box-shadow: 0 8px 32px var(--shadow);
+    width: calc(100% - 40px);
+  }
+
+  .spotlight-card p {
+    font-size: 14.5px;
+    color: var(--text);
+    line-height: 1.65;
+  }
+
+  .spotlight-card .highlight {
+    font-weight: bold;
+    color: var(--amber-dark);
+  }
+
+  .milestone-badge {
+    background: linear-gradient(135deg, var(--amber-light), var(--amber));
+    color: var(--brown);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(200,134,10,0.3);
+  }
+
+  #btn-continue {
+    margin: 0 20px 32px;
+    width: calc(100% - 40px);
+  }
+
+  /* ══════════════════════════════════════
+     SCREEN: GAME OVER
+  ══════════════════════════════════════ */
+  #screen-gameover {
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    background: linear-gradient(175deg, var(--brown) 0%, var(--brown-mid) 50%, var(--cream-dark) 100%);
+  }
+
+  .gameover-icon { font-size: 64px; margin-bottom: 12px; }
+
+  #screen-gameover h2 {
+    font-size: 26px;
+    color: var(--white);
+    text-align: center;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    margin-bottom: 4px;
+  }
+
+  #screen-gameover .go-subtitle {
+    font-size: 14px;
+    color: var(--amber-light);
+    font-style: italic;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .score-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 24px 20px;
+    width: 100%;
+    box-shadow: 0 8px 32px var(--shadow);
+    margin-bottom: 24px;
+    border: 1.5px solid var(--cream-dark);
+  }
+
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--cream-dark);
+  }
+  .score-row:last-child { border-bottom: none; }
+
+  .score-row .sr-label {
+    font-size: 13px;
+    color: var(--brown-mid);
+  }
+  .score-row .sr-value {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--text);
+  }
+  .score-row .sr-value.best {
+    color: var(--amber-dark);
+  }
+  .score-row .sr-value.new-record {
+    color: var(--green);
+  }
+
+  .new-record-banner {
+    background: linear-gradient(135deg, #D4EFDF, #A9DFBF);
+    border: 1.5px solid var(--green);
+    border-radius: 12px;
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #1A5E34;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.15);
+    color: var(--cream);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+    transition: background 0.15s;
+  }
+  .btn-secondary:active { background: rgba(255,255,255,0.25); }
+
+  /* ── Progress bar at top ── */
+  .progress-bar-wrap {
+    height: 5px;
+    background: var(--cream-dark);
+    width: 100%;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amber-light), var(--amber));
+    transition: width 0.4s ease;
+  }
+
+  /* ── Animations ── */
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .slide-up { animation: slideUp 0.35s ease forwards; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  .shake { animation: shake 0.4s ease; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ SCREEN: START ══ -->
+  <div id="screen-start" class="screen active">
+    <div class="flame-wrap">🕯️</div>
+    <h1>O Trilho dos<br>Pioneiros</h1>
+    <div class="subtitle">Quizze de História Adventista</div>
+
+    <div class="high-score-wrap">
+      <div class="label">Recorde</div>
+      <div class="value" id="start-highscore">0</div>
+    </div>
+
+    <div class="start-card">
+      <p>Quanto sabes sobre os pioneiros que abriram o caminho da fé adventista?</p>
+      <ul class="rules-list">
+        <li><span class="icon">❤️</span> Começas com <strong>3 vidas</strong> — cada erro custa uma</li>
+        <li><span class="icon">🔥</span> Respostas seguidas multiplicam a pontuação</li>
+        <li><span class="icon">📖</span> Descobre um pioneiro a cada 5 respostas certas</li>
+        <li><span class="icon">⭐</span> Perguntas ficam mais difíceis ao longo do trilho</li>
+      </ul>
+    </div>
+
+    <button class="btn-primary" onclick="startGame()">Começar o Trilho</button>
+  </div>
+
+  <!-- ══ SCREEN: GAME ══ -->
+  <div id="screen-game" class="screen">
+    <div class="game-header">
+      <div class="lives-display" id="lives-display">
+        <span class="life">❤️</span>
+        <span class="life">❤️</span>
+        <span class="life">❤️</span>
+      </div>
+      <div class="score-display">
+        <div class="score-num" id="score-display">0</div>
+        <div class="score-label">Pontos</div>
+      </div>
+      <div class="streak-display" id="streak-display">
+        <div class="streak-num" id="streak-num">0</div>
+        <div class="streak-label">Sequência</div>
+      </div>
+    </div>
+    <div class="difficulty-bar">
+      <div class="diff-seg" id="seg0"></div>
+      <div class="diff-seg" id="seg1"></div>
+      <div class="diff-seg" id="seg2"></div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="question-area">
+      <div class="diff-badge" id="diff-badge">Fácil</div>
+      <div class="question-text" id="question-text">Carregando...</div>
+      <div class="q-counter" id="q-counter">Pergunta 1</div>
+    </div>
+
+    <div class="options-area" id="options-area"></div>
+
+    <div class="feedback-overlay" id="feedback-overlay"></div>
+  </div>
+
+  <!-- ══ SCREEN: SPOTLIGHT ══ -->
+  <div id="screen-spotlight" class="screen">
+    <div class="spotlight-top">
+      <div class="spotlight-label">Pioneiro em Destaque</div>
+      <div class="milestone-badge" id="milestone-badge">5 certas! 🎉</div>
+      <span class="spotlight-icon" id="spotlight-icon">✝️</span>
+      <div class="spotlight-name" id="spotlight-name">Nome do Pioneiro</div>
+      <div class="spotlight-years" id="spotlight-years">1800 – 1900</div>
+    </div>
+    <div class="spotlight-card">
+      <p id="spotlight-bio">Bio aqui.</p>
+    </div>
+    <button class="btn-primary" id="btn-continue" onclick="continueGame()">Continuar o Trilho →</button>
+  </div>
+
+  <!-- ══ SCREEN: GAME OVER ══ -->
+  <div id="screen-gameover" class="screen">
+    <div class="gameover-icon" id="go-icon">🕯️</div>
+    <h2 id="go-title">A Chama Apagou</h2>
+    <div class="go-subtitle" id="go-subtitle">Mas a história continua...</div>
+
+    <div class="new-record-banner" id="new-record-banner">🏆 Novo Recorde! Parabéns!</div>
+
+    <div class="score-card">
+      <div class="score-row">
+        <span class="sr-label">Pontuação Final</span>
+        <span class="sr-value" id="go-score">0</span>
+      </div>
+      <div class="score-row">
+        <span class="sr-label">Perguntas Certas</span>
+        <span class="sr-value" id="go-correct">0</span>
+      </div>
+      <div class="score-row">
+        <span class="sr-label">Melhor Sequência</span>
+        <span class="sr-value" id="go-streak">0</span>
+      </div>
+      <div class="score-row">
+        <span class="sr-label">Recorde Pessoal</span>
+        <span class="sr-value best" id="go-best">0</span>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="startGame()">Jogar Novamente</button>
+    <button class="btn-secondary" onclick="showStart()">Início</button>
+  </div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   DATA: PIONEERS for spotlight
+══════════════════════════════════════════════════════ */
+const PIONEERS = [
+  {
+    name: "William Miller",
+    years: "1782 – 1849",
+    icon: "📜",
+    bio: `<span class="highlight">William Miller</span> era um fazendeiro batista de Low Hampton, Nova Iorque, que estudou intensamente as profecias de Daniel. Usando o princípio "dia-ano" e focando em Daniel 8:14, calculou que a Segunda Vinda de Cristo ocorreria por volta de <span class="highlight">1843–1844</span>. A partir de 1831 pregou publicamente, atraindo dezenas de milhares de seguidores de diversas denominações. O Grande Desapontamento de 22 de outubro de 1844 não pôs fim ao seu impacto — o movimento que nasceu da sua pregação deu origem à Igreja Adventista do Sétimo Dia.`
+  },
+  {
+    name: "Joseph Bates",
+    years: "1792 – 1872",
+    icon: "⚓",
+    bio: `Conhecido como o <span class="highlight">"Capitão da Fé"</span>, Joseph Bates foi ex-capitão de mar, abolicionista e pioneiro da temperança. Após o Grande Desapontamento, viajou a Washington, New Hampshire, onde aceitou a verdade do <span class="highlight">Sábado do Sétimo Dia</span>. Em 1846 escreveu o panfleto seminal "The Seventh-day Sabbath, a Perpetual Sign", introduzindo esta doutrina crucial a James e Ellen White e moldando para sempre a identidade adventista.`
+  },
+  {
+    name: "Ellen G. White",
+    years: "1827 – 1915",
+    icon: "✍️",
+    bio: `<span class="highlight">Ellen Gould Harmon</span> nasceu em Gorham, Maine. Aos 17 anos recebeu a sua primeira visão em Portland, após o Grande Desapontamento de 1844. Ao longo de sete décadas recebeu mais de 2000 visões e sonhos proféticos. Nunca se autodenominou "profetiza" — preferiu chamar-se <span class="highlight">"mensageira do Senhor"</span>. Os seus escritos abrangem saúde, educação, teologia e estilo de vida cristão, e o seu livro "O Grande Conflito" continua a ser uma das obras mais distribuídas da história adventista.`
+  },
+  {
+    name: "James White",
+    years: "1821 – 1881",
+    icon: "🖨️",
+    bio: `<span class="highlight">James White</span> foi um dos três cofundadores da Igreja Adventista e marido de Ellen White. Em 1849 editou "The Present Truth", a primeira publicação do movimento, usando uma prensa manual Washington. Em 1850 fundou a "Advent Review and Sabbath Herald". Desempenhou papel crucial na <span class="highlight">organização administrativa</span> da igreja, promovendo conferências para unificar crenças e impulsionando o estabelecimento da Conferência Geral em 1863.`
+  },
+  {
+    name: "Hiram Edson",
+    years: "1806 – 1882",
+    icon: "🌾",
+    bio: `Na manhã de <span class="highlight">23 de outubro de 1844</span>, um dia após o Grande Desapontamento, Hiram Edson atravessava um milheiral em Port Gibson, Nova Iorque, quando teve um vislumbre espiritual: o erro de 1844 não estava na data, mas no <span class="highlight">evento</span>. Cristo não veio à Terra — entrou no Lugar Santíssimo do Santuário Celestial para iniciar a obra do julgamento investigativo. Esta revelação tornou-se a coluna teológica do adventismo.`
+  },
+  {
+    name: "John Byington",
+    years: "1798 – 1887",
+    icon: "🏛️",
+    bio: `<span class="highlight">John Byington</span> foi eleito o primeiro presidente da Conferência Geral dos Adventistas do Sétimo Dia quando esta foi organizada em <span class="highlight">21 de maio de 1863</span> em Battle Creek, Michigan. Era um fervoroso abolicionista que usou a sua propriedade em Buck's Bridge, Nova Iorque, como <span class="highlight">estação da "ferrovia subterrânea"</span> para ajudar escravos a fugir para o Canadá. A sua eleição simbolizou os valores de liberdade que moldaram o adventismo nascente.`
+  },
+  {
+    name: "Uriah Smith",
+    years: "1832 – 1903",
+    icon: "📰",
+    bio: `<span class="highlight">Uriah Smith</span> foi durante décadas editor da "Review and Herald", a principal publicação adventista. É mais conhecido pela sua obra clássica <span class="highlight">"Daniel e o Apocalipse"</span>, que continua a ser uma referência essencial na interpretação profética adventista. Apesar de ter perdido uma perna na infância, desenhou o seu próprio membro artificial de madeira e nunca deixou a limitação física impedir o seu imenso contributo literário e teológico.`
+  },
+  {
+    name: "A. G. Daniells",
+    years: "1858 – 1936",
+    icon: "🌍",
+    bio: `<span class="highlight">Arthur Grosvenor Daniells</span> foi o presidente da Conferência Geral que mais tempo permaneceu no cargo: <span class="highlight">1901–1922</span>. Teve papel crucial na reorganização administrativa de 1901, que descentralizou a liderança da igreja através da criação das <span class="highlight">Uniões</span>. Liderou também a transferência da sede da igreja de Battle Creek para Washington, D.C., após os trágicos incêndios do Sanatório e da Review and Herald.`
+  },
+  {
+    name: "Anna Knight",
+    years: "1874 – 1972",
+    icon: "📚",
+    bio: `<span class="highlight">Anna Knight</span> foi uma pioneira missionária nascida de pais escravos no Mississippi. Após se converter através de materiais de colportagem e estudar na Battle Creek, tornou-se uma das primeiras mulheres adventistas a ir como missionária para a <span class="highlight">Índia</span> (1901). De volta aos EUA, dedicou décadas à educação de crianças afro-americanas no sul do país, sendo um símbolo de coragem, fé e serviço abnegado.`
+  },
+  {
+    name: "George King",
+    years: "1847 – 1906",
+    icon: "📦",
+    bio: `<span class="highlight">George King</span> é considerado o pioneiro da obra de <span class="highlight">colportagem</span> na Igreja Adventista. Em 1875, após ouvir Ellen White falar sobre a importância de distribuir literatura, começou a vender livros porta a porta — sem salário garantido. O seu sucesso inspirou a criação do sistema formal de colportagem que hoje sustenta o ministério de publicações adventistas em todo o mundo.`
+  },
+  {
+    name: "Abram LaRue",
+    years: "1822 – 1903",
+    icon: "⛵",
+    bio: `<span class="highlight">Abram LaRue</span> batizou-se aos 59 anos e logo depois partiu como missionário autoproposto para Hong Kong, chegando em 1888. Sem apoio financeiro oficial da igreja, sustentou-se distribuindo literatura adventista nos portos asiáticos. Foi o primeiro a levar a mensagem adventista à <span class="highlight">China e ao Extremo Oriente</span>, pavimentando o caminho para missões formais que vieram depois.`
+  },
+  {
+    name: "W. H. Anderson",
+    years: "1870 – 1950",
+    icon: "🌍",
+    bio: `<span class="highlight">William Harrison Anderson</span> foi um dos maiores pioneiros missionários na África. Em 1895 ajudou a estabelecer a Missão de <span class="highlight">Solusi</span> (no atual Zimbábue), em terras cedidas por Cecil Rhodes — o primeiro colégio adventista em África. Enfrentou malária, a morte da sua esposa e condições extremas para expandir a mensagem em Angola, Zâmbia e outras regiões. O seu legado personifica o espírito de sacrifício do serviço missionário.`
+  }
+];
+
+/* ══════════════════════════════════════════════════════
+   DATA: QUESTIONS
+══════════════════════════════════════════════════════ */
+const ALL_QUESTIONS = [
+  // ─────────── FÁCIL ───────────
+  { d: 0, q: "Qual foi a data do 'Grande Desapontamento', quando Cristo não retornou como esperado pelos milleritas?", opts: ["22 de outubro de 1844","1 de janeiro de 1843","31 de outubro de 1845","25 de dezembro de 1844"], ans: 0 },
+  { d: 0, q: "Quem foi William Miller?", opts: ["Um fazendeiro batista que pregou a Segunda Vinda por volta de 1844","O primeiro presidente da Conferência Geral","O pioneiro da colportagem adventista","O editor da Review and Herald"], ans: 0 },
+  { d: 0, q: "Qual doutrina distintiva Joseph Bates introduziu ao grupo dos pioneiros adventistas?", opts: ["O Sábado do Sétimo Dia","O Julgamento Investigativo","A Reforma de Saúde","O Estado dos Mortos"], ans: 0 },
+  { d: 0, q: "Em que ano foi oficialmente organizada a Conferência Geral dos Adventistas do Sétimo Dia?", opts: ["1863","1844","1850","1888"], ans: 0 },
+  { d: 0, q: "Quem foi o primeiro presidente da Conferência Geral dos Adventistas do Sétimo Dia?", opts: ["John Byington","James White","Joseph Bates","Hiram Edson"], ans: 0 },
+  { d: 0, q: "Em que cidade do estado de Michigan foi organizada a Conferência Geral em 1863?", opts: ["Battle Creek","Grand Rapids","Detroit","Lansing"], ans: 0 },
+  { d: 0, q: "Qual foi a primeira publicação periódica dos pioneiros adventistas, editada por James White em 1849?", opts: ["The Present Truth","Review and Herald","Signs of the Times","Youth's Instructor"], ans: 0 },
+  { d: 0, q: "Como ficou conhecida Ellen White entre os pioneiros adventistas?", opts: ["Mensageira do Senhor","Profetisa-Mor","A Vidente de Battle Creek","Guardiã da Fé"], ans: 0 },
+  { d: 0, q: "Qual profecia bíblica William Miller usou para calcular a data de 1844?", opts: ["Daniel 8:14","Apocalipse 14:6","Mateus 24:14","Isaías 60:1"], ans: 0 },
+  { d: 0, q: "Qual o apelido carinhoso dado a Joseph Bates pelos adventistas, em referência ao seu passado marítimo?", opts: ["Capitão da Fé","Almirante do Sábado","Navegador da Profecia","Capitão da Graça"], ans: 0 },
+  { d: 0, q: "Em que estado americano nasceu Ellen Gould Harmon (White)?", opts: ["Maine","Nova Iorque","Michigan","Ohio"], ans: 0 },
+  { d: 0, q: "Qual foi a primeira publicação da Igreja Adventista direcionada especificamente para jovens, fundada por James White em 1852?", opts: ["Youth's Instructor","Signs of the Times","Present Truth","Review and Herald"], ans: 0 },
+  { d: 0, q: "Qual das seguintes instituições foi a primeira grande estação missionária e colégio adventista em África?", opts: ["Colégio Solusi","Avondale College","Battle Creek College","Washington College"], ans: 0 },
+  { d: 0, q: "Qual é o nome da obra-prima histórica e profética de Ellen G. White que traça o conflito entre Cristo e Satanás?", opts: ["O Grande Conflito","A Teia da Apostasia","Patriarcas e Profetas","A Crise Final"], ans: 0 },
+  { d: 0, q: "Hiram Edson teve a sua famosa iluminação espiritual enquanto atravessava o quê?", opts: ["Um milheiral","Um pomar de maçãs","Uma floresta","Uma planície nevada"], ans: 0 },
+
+  // ─────────── MÉDIO ───────────
+  { d: 1, q: "Qual foi o princípio de interpretação bíblica que William Miller usou para calcular as profecias?", opts: ["Princípio dia-ano","Interpretação literal","Alegorismo bíblico","Princípio tipológico"], ans: 0 },
+  { d: 1, q: "Em que local específico Hiram Edson teve o seu vislumbre espiritual sobre o Santuário Celestial?", opts: ["Port Gibson, Nova Iorque","Battle Creek, Michigan","Washington, New Hampshire","Portland, Maine"], ans: 0 },
+  { d: 1, q: "Qual foi a 'data específica' fixada por Samuel Snow para o regresso de Cristo, que ficou conhecida como o 'Clamor da Meia-Noite'?", opts: ["22 de outubro de 1844","1 de março de 1844","7 de setembro de 1845","14 de agosto de 1843"], ans: 0 },
+  { d: 1, q: "A Conferência de 1888 em Minneapolis é famosa por que tema central?", opts: ["Justificação pela Fé","Organização das Uniões","Criação do sistema de dízimo","O movimento missionário global"], ans: 0 },
+  { d: 1, q: "Quem eram os dois pregadores principais da mensagem de Justificação pela Fé na Conferência de Minneapolis de 1888?", opts: ["A.T. Jones e E.J. Waggoner","James White e Joseph Bates","Uriah Smith e J.N. Andrews","John Harvey Kellogg e A.G. Daniells"], ans: 0 },
+  { d: 1, q: "Em que ano Ellen White recebeu a sua primeira visão sobre a saúde e reforma de saúde?", opts: ["1863","1858","1844","1872"], ans: 0 },
+  { d: 1, q: "Qual foi a visão que Ellen White recebeu em Lovett Grove, Ohio, em 1858?", opts: ["O Grande Conflito entre Cristo e Satanás","A estrutura do Santuário Celestial","A missão dos três anjos","O Julgamento Investigativo"], ans: 0 },
+  { d: 1, q: "Como se chamava a residência de Ellen White na Austrália, onde viveu durante o trabalho missionário?", opts: ["Sunnyside","Elmshaven","Gorham House","Battle Creek Retreat"], ans: 0 },
+  { d: 1, q: "Qual foi a residência final de Ellen White nos seus últimos quinze anos de vida, em Saint Helena, Califórnia?", opts: ["Elmshaven","Sunnyside","Avondale","Rocky Hill"], ans: 0 },
+  { d: 1, q: "A organização 'Ellen G. White Estate, Inc.' tem que missão principal?", opts: ["Preservar manuscritos e supervisionar traduções dos seus livros","Dirigir o sistema de saúde adventista","Gerir as finanças da Conferência Geral","Treinar novos colportores"], ans: 0 },
+  { d: 1, q: "Qual missionário adventista foi enviado para a China em 1902 como o primeiro missionário oficial da igreja nesse país?", opts: ["J.N. Anderson","Abram LaRue","W.H. Anderson","A.G. Daniells"], ans: 0 },
+  { d: 1, q: "Abram LaRue chegou a Hong Kong em 1888 aos quantos anos de idade aproximados?", opts: ["66 anos","40 anos","50 anos","75 anos"], ans: 0 },
+  { d: 1, q: "Qual publicação adventista foi criada para defender a liberdade religiosa e a separação entre Igreja e Estado?", opts: ["Revista Liberdade (Liberty)","Signs of the Times","The Health Reformer","Youth's Instructor"], ans: 0 },
+  { d: 1, q: "Como se chamava o navio missionário financiado pelas Escolas Sabatinas para expandir a mensagem às ilhas do Pacífico?", opts: ["Pitcairn","Providence","Pilgrim","Pioneer"], ans: 0 },
+  { d: 1, q: "Que reformas fizeram da Conferência Geral de 1901 um marco histórico?", opts: ["Criação das Uniões para descentralizar a liderança","Adoção do nome 'Adventistas do Sétimo Dia'","Publicação da primeira Escola Sabatina","Transferência da sede para Silver Spring"], ans: 0 },
+  { d: 1, q: "George King é pioneiro de qual importante atividade missionária adventista?", opts: ["Colportagem (venda de livros porta a porta)","Missão médica","Rádio evangelismo","Evangelismo público em tendas"], ans: 0 },
+
+  // ─────────── DIFÍCIL ───────────
+  { d: 2, q: "Qual foi o nome do plano de contribuições regulares instituído em 1859, precursor do sistema de dízimo adventista atual?", opts: ["Benevolência Sistemática","Dízimo Sagrado","Oferta dos Pioneiros","Contribuição Voluntária"], ans: 0 },
+  { d: 2, q: "Qual a prensa usada por James White para imprimir os primeiros números da 'Present Truth' em 1849?", opts: ["Washington hand press","Gutenberg press","Steam press","Heidelberg press"], ans: 0 },
+  { d: 2, q: "Quem foram os três pioneiros que desenvolveram a doutrina do Santuário Celestial após o Grande Desapontamento?", opts: ["Hiram Edson, Owen Crosier e Franklin Hall","James White, Joseph Bates e Ellen White","William Miller, Samuel Snow e Charles Fitch","John Byington, Uriah Smith e J.N. Andrews"], ans: 0 },
+  { d: 2, q: "Em que cidade e estado ocorreu a primeira visão de Ellen White, em dezembro de 1844?", opts: ["Portland, Maine","Battle Creek, Michigan","Washington, New Hampshire","Rochester, Nova Iorque"], ans: 0 },
+  { d: 2, q: "Em que ano foi estabelecida a Missão de Solusi no Zimbábue, o primeiro colégio adventista em África?", opts: ["1894","1886","1901","1910"], ans: 0 },
+  { d: 2, q: "Qual foi o nome do grupo religioso do qual Hiram Edson, Owen Crosier e Franklin Hall faziam parte antes de 1844?", opts: ["Milleritas","Metodistas","Batistas","Presbiterianos"], ans: 0 },
+  { d: 2, q: "Em que mês e ano saiu a primeira edição da 'Present Truth' de James White?", opts: ["Julho de 1849","Janeiro de 1850","Março de 1848","Outubro de 1844"], ans: 0 },
+  { d: 2, q: "O Dime Tabernacle em Battle Creek recebeu esse nome por quê?", opts: ["Foi financiado com doações de moedas de dez cêntimos (dimes)","Tinha dez portas de entrada","Custou dez mil dólares para ser construído","Foi dedicado no décimo aniversário da igreja"], ans: 0 },
+  { d: 2, q: "Qual foi a principal obra escrita por Uriah Smith, essencial na interpretação profética adventista?", opts: ["Daniel e o Apocalipse","O Grande Conflito","Patriarcas e Profetas","A Verdade Presente"], ans: 0 },
+  { d: 2, q: "A Conferência Geral de 1901 teve como resultado a criação de que estrutura administrativa?", opts: ["As Uniões, que passaram a intermediar entre as igrejas locais e a Conferência Geral","O sistema de dízimo e benevolência sistematizada","O Departamento de Missão Global","As Divisões como órgãos máximos independentes"], ans: 0 },
+  { d: 2, q: "Em que estado americano ficava a propriedade de John Byington que era estação da 'ferrovia subterrânea' para ajudar escravos a fugir?", opts: ["Nova Iorque","Ohio","Michigan","Vermont"], ans: 0 },
+  { d: 2, q: "Anna Knight foi uma das primeiras mulheres adventistas a ir como missionária a que país?", opts: ["Índia","China","África do Sul","Brasil"], ans: 0 },
+  { d: 2, q: "Em que circunstância Ellen White recebeu a visão monumental do Grande Conflito em Lovett Grove, Ohio?", opts: ["Durante uma reunião fúnebre","Numa reunião de oração noturna","Em jejum e oração solitária","Num camp meeting ao ar livre"], ans: 0 },
+  { d: 2, q: "Qual divisão da Igreja Adventista é responsável pelo território de Portugal, onde se insere a UPASD?", opts: ["Divisão Inter-Europeia (EUD)","Divisão Sul da Europa","Divisão Euro-Africana","Divisão Norte-Europeia"], ans: 0 },
+  { d: 2, q: "Joseph Bates aprendeu sobre o Sábado do Sétimo Dia ao visitar que local?", opts: ["Washington, New Hampshire","Portland, Maine","Battle Creek, Michigan","Rochester, Nova Iorque"], ans: 0 },
+];
+
+/* ══════════════════════════════════════════════════════
+   GAME STATE
+══════════════════════════════════════════════════════ */
+let state = {};
+
+function getHighScore() { return parseInt(localStorage.getItem('trilho_hs') || '0'); }
+function setHighScore(n) { localStorage.setItem('trilho_hs', n); }
+
+/* ══════════════════════════════════════════════════════
+   SCREEN MANAGEMENT
+══════════════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showStart() {
+  document.getElementById('start-highscore').textContent = getHighScore();
+  showScreen('screen-start');
+}
+
+/* ══════════════════════════════════════════════════════
+   GAME LOGIC
+══════════════════════════════════════════════════════ */
+function startGame() {
+  // Shuffle and split questions by difficulty
+  const easy   = shuffle(ALL_QUESTIONS.filter(q => q.d === 0));
+  const medium = shuffle(ALL_QUESTIONS.filter(q => q.d === 1));
+  const hard   = shuffle(ALL_QUESTIONS.filter(q => q.d === 2));
+
+  state = {
+    questions: [...easy, ...medium, ...hard],
+    current: 0,
+    score: 0,
+    lives: 3,
+    streak: 0,
+    bestStreak: 0,
+    correct: 0,
+    answered: false,
+    pioneersShown: 0,
+    pioneerQueue: shuffle([...PIONEERS]),
+  };
+
+  updateHeader();
+  showScreen('screen-game');
+  loadQuestion();
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getDifficulty(q) {
+  if (q.d === 0) return { label: 'Fácil', cls: 'easy' };
+  if (q.d === 1) return { label: 'Médio', cls: 'medium' };
+  return { label: 'Difícil', cls: 'hard' };
+}
+
+function loadQuestion() {
+  const { questions, current } = state;
+  if (current >= questions.length) { endGame(true); return; }
+
+  const q = questions[current];
+  const diff = getDifficulty(q);
+
+  // Badge
+  const badge = document.getElementById('diff-badge');
+  badge.textContent = diff.label;
+  badge.className = 'diff-badge ' + diff.cls;
+
+  // Difficulty bar
+  ['seg0','seg1','seg2'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (q.d === 0) { el.className = 'diff-seg ' + (i === 0 ? 'easy' : 'inactive'); }
+    else if (q.d === 1) { el.className = 'diff-seg ' + (i <= 1 ? 'medium' : 'inactive'); }
+    else { el.className = 'diff-seg hard'; }
+  });
+
+  // Question
+  document.getElementById('question-text').textContent = q.q;
+  document.getElementById('q-counter').textContent = `Pergunta ${current + 1}`;
+
+  // Progress bar
+  document.getElementById('progress-fill').style.width = (current / questions.length * 100) + '%';
+
+  // Options — shuffle display order
+  const indices = shuffle([0, 1, 2, 3]);
+  const letters = ['A', 'B', 'C', 'D'];
+  const area = document.getElementById('options-area');
+  area.innerHTML = '';
+
+  indices.forEach((realIdx, displayIdx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn slide-up';
+    btn.style.animationDelay = (displayIdx * 0.07) + 's';
+    btn.innerHTML = `<span class="option-letter">${letters[displayIdx]}</span>${q.opts[realIdx]}`;
+    btn.dataset.realIdx = realIdx;
+    btn.onclick = () => handleAnswer(btn, realIdx === q.ans, realIdx, indices);
+    area.appendChild(btn);
+  });
+
+  state.answered = false;
+}
+
+function handleAnswer(btn, correct, chosenIdx, displayedIndices) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const q = state.questions[state.current];
+  const allBtns = document.querySelectorAll('.option-btn');
+
+  // Mark all answered
+  allBtns.forEach(b => {
+    b.classList.add('answered');
+    const ri = parseInt(b.dataset.realIdx);
+    if (ri === q.ans) b.classList.add(correct && ri === chosenIdx ? 'correct' : 'reveal');
+  });
+
+  if (correct) {
+    btn.classList.add('correct');
+    state.streak++;
+    state.correct++;
+    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+
+    const multiplier = Math.min(state.streak, 5);
+    const basePoints = q.d === 0 ? 100 : q.d === 1 ? 200 : 350;
+    const earned = basePoints * multiplier;
+    state.score += earned;
+
+    showFeedback(state.streak >= 3 ? '🔥' : '✅');
+  } else {
+    btn.classList.add('wrong');
+    state.lives--;
+    state.streak = 0;
+    showFeedback('❌');
+
+    // Shake lives
+    const livesEl = document.getElementById('lives-display');
+    livesEl.classList.add('shake');
+    setTimeout(() => livesEl.classList.remove('shake'), 500);
+  }
+
+  updateHeader();
+
+  // Check game over
+  if (state.lives <= 0) {
+    setTimeout(() => endGame(false), 1400);
+    return;
+  }
+
+  // Check spotlight milestone (every 5 correct answers)
+  if (correct && state.correct % 5 === 0) {
+    setTimeout(() => showSpotlight(), 1200);
+  } else {
+    setTimeout(() => {
+      state.current++;
+      loadQuestion();
+    }, 1200);
+  }
+}
+
+function showFeedback(emoji) {
+  const overlay = document.getElementById('feedback-overlay');
+  overlay.innerHTML = `<div class="feedback-msg">${emoji}</div>`;
+  setTimeout(() => { overlay.innerHTML = ''; }, 1200);
+}
+
+function updateHeader() {
+  // Score
+  document.getElementById('score-display').textContent = state.score.toLocaleString('pt-PT');
+
+  // Lives
+  const livesEl = document.getElementById('lives-display');
+  livesEl.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const span = document.createElement('span');
+    span.className = 'life' + (i >= state.lives ? ' lost' : '');
+    span.textContent = '❤️';
+    livesEl.appendChild(span);
+  }
+
+  // Streak
+  document.getElementById('streak-num').textContent = state.streak;
+  const sd = document.getElementById('streak-display');
+  if (state.streak >= 3) { sd.classList.add('hot'); } else { sd.classList.remove('hot'); }
+}
+
+function showSpotlight() {
+  const pioneer = state.pioneerQueue[state.pioneersShown % state.pioneerQueue.length];
+  state.pioneersShown++;
+
+  document.getElementById('milestone-badge').textContent = `${state.correct} certas! 🎉`;
+  document.getElementById('spotlight-icon').textContent = pioneer.icon;
+  document.getElementById('spotlight-name').textContent = pioneer.name;
+  document.getElementById('spotlight-years').textContent = pioneer.years;
+  document.getElementById('spotlight-bio').innerHTML = pioneer.bio;
+
+  showScreen('screen-spotlight');
+}
+
+function continueGame() {
+  state.current++;
+  showScreen('screen-game');
+  loadQuestion();
+}
+
+function endGame(completed) {
+  const hs = getHighScore();
+  const isNewRecord = state.score > hs;
+  if (isNewRecord) setHighScore(state.score);
+
+  document.getElementById('go-icon').textContent = completed ? '🏆' : '🕯️';
+  document.getElementById('go-title').textContent = completed ? 'Trilho Completo!' : 'A Chama Apagou';
+  document.getElementById('go-subtitle').textContent = completed
+    ? 'Percorreste todo o trilho dos pioneiros!'
+    : 'Mas a história adventista continua viva...';
+
+  document.getElementById('go-score').textContent = state.score.toLocaleString('pt-PT');
+  document.getElementById('go-correct').textContent = state.correct;
+  document.getElementById('go-streak').textContent = state.bestStreak;
+  document.getElementById('go-best').textContent = Math.max(state.score, hs).toLocaleString('pt-PT');
+
+  const banner = document.getElementById('new-record-banner');
+  banner.style.display = isNewRecord && state.score > 0 ? 'block' : 'none';
+
+  showScreen('screen-gameover');
+}
+
+// Init
+showStart();
+</script>
+</body>
+</html>
